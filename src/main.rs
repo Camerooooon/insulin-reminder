@@ -1,14 +1,11 @@
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
 mod insulin;
-use insulin::{get_lines, parse_dose};
-
-#[get("/")]
-fn index() -> String {
-    parse_dose();
-    "Yo".to_string()
-}
+mod routes;
+use insulin::parse_dose;
+use routes::get_routes;
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index])
+    rocket::build().mount("/", get_routes())
 }
