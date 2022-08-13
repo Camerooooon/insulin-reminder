@@ -1,10 +1,9 @@
+use crate::error::InsulinLookupError;
 use chrono::{NaiveDateTime, TimeZone};
-use core::fmt::{Formatter, Display};
 use chrono_tz::US::Pacific;
 use rocket::serde::Serialize;
 use std::fs::File;
 use std::io::{Error, Read};
-use std::num::ParseIntError;
 use std::path::Path;
 
 pub fn read_file() -> Result<String, Error> {
@@ -18,34 +17,6 @@ pub fn read_file() -> Result<String, Error> {
         Ok(contents)
     } else {
         Ok(String::new())
-    }
-}
-
-#[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct InsulinLookupError {
-    message: String,
-}
-
-impl From<std::io::Error> for InsulinLookupError {
-    fn from(err: std::io::Error) -> Self {
-        InsulinLookupError {
-            message: format!("IO Error occured while reading file: {}", err.to_string()),
-        }
-    }
-}
-
-impl From<ParseIntError> for InsulinLookupError {
-    fn from(err: ParseIntError) -> Self {
-        InsulinLookupError {
-            message: format!("Parse error occured: {}", err.to_string()),
-        }
-    }
-}
-
-impl Display for InsulinLookupError {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
-        write!(f, "{}", self.message)
     }
 }
 
@@ -74,13 +45,14 @@ pub fn parse_dose() -> Result<Dose, InsulinLookupError> {
             message: "Parse failed".to_string(),
         })?
         .parse::<i64>()?;
-    let units = parts.next().ok_or(InsulinLookupError {
-        message: "Parse failed".to_string(),
-    })?.parse::<u8>().unwrap();
-    let dose = Dose {
-        time: time,
-        units: units,
-    };
+    let units = parts
+        .next()
+        .ok_or(InsulinLookupError {
+            message: "Parse failed".to_string(),
+        })?
+        .parse::<u8>()
+        .unwrap();
+    let dose = Dose { time, units };
     println!("{:?}", dose.timestamp());
     Ok(dose)
 }

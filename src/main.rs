@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate rocket;
-mod insulin;
-mod routes;
-use insulin::parse_dose;
+pub mod error;
+pub mod insulin;
+pub mod routes;
 use routes::get_routes;
 
 #[launch]

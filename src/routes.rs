@@ -1,4 +1,5 @@
-use crate::insulin::{Dose, parse_dose, InsulinLookupError};
+use crate::error::InsulinLookupError;
+use crate::insulin::{parse_dose, Dose};
 use rocket::serde::json::Json;
 
 #[get("/lastdose")]
@@ -9,6 +10,7 @@ fn lastdose() -> Result<Json<Dose>, Json<InsulinLookupError>> {
             return Err(Json(e));
         }
     };
+    println!("{:?}", dose);
     Ok(Json(dose))
 }
 
