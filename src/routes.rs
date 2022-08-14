@@ -1,3 +1,4 @@
+use crate::auth::ApiKey;
 use crate::error::InsulinLookupError;
 use crate::insulin::{parse_dose, save_dose, Dose, Insulin};
 use rocket::serde::json::Json;
@@ -8,7 +9,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[serde(crate = "rocket::serde")]
 struct DoseRequest {
     dose: u8,
-    key: Option<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -22,8 +22,8 @@ struct DoseResponse {
     time_until: Option<i64>,
 }
 
-#[get("/lastdose")]
-fn lastdose() -> Json<DoseResponse> {
+#[get("/lastdose", format = "json")]
+fn lastdose(_auth: ApiKey<'_>) -> Json<DoseResponse> {
     let dose = match parse_dose() {
         Ok(d) => d,
         Err(e) => {
@@ -49,7 +49,7 @@ fn lastdose() -> Json<DoseResponse> {
 }
 
 #[post("/dose", format = "json", data = "<dosereq>")]
-fn dose(dosereq: Json<DoseRequest>) -> String {
+fn dose(dosereq: Json<DoseRequest>, _auth: ApiKey<'_>) -> String {
     let dose = Dose {
         units: dosereq.dose,
         time: SystemTime::now()
