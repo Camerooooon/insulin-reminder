@@ -19,6 +19,7 @@ struct DoseResponse {
     error: Option<InsulinLookupError>,
     success: bool,
     insulin_time: bool,
+    time_until: Option<i64>,
 }
 
 #[get("/lastdose")]
@@ -32,6 +33,7 @@ fn lastdose() -> Json<DoseResponse> {
                 error: Some(e),
                 success: false,
                 insulin_time: false,
+                time_until: None,
             });
         }
     };
@@ -42,6 +44,7 @@ fn lastdose() -> Json<DoseResponse> {
         error: None,
         success: true,
         insulin_time: dose.insulin_time(),
+        time_until: Some(dose.time_until_insulin()),
     })
 }
 

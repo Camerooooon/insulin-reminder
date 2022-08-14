@@ -7,6 +7,8 @@ use std::io::{Error, Read};
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+const DAY_IN_SECS: i64 = 60 * 60 * 24;
+
 pub fn read_file() -> Result<String, Error> {
     // Read lines from file
     let path = Path::new("/tmp/insulin");
@@ -23,6 +25,7 @@ pub fn read_file() -> Result<String, Error> {
 pub trait Insulin {
     fn timestamp(&self) -> String;
     fn insulin_time(&self) -> bool;
+    fn time_until_insulin(&self) -> i64;
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -72,10 +75,14 @@ impl Insulin for Dose {
     }
 
     fn insulin_time(&self) -> bool {
-        if (get_time() - self.time) > 60 * 60 * 24 {
+        if (get_time() - self.time) > DAY_IN_SECS as u64 {
             return true;
         }
         return false;
+    }
+
+    fn time_until_insulin(&self) -> i64 {
+        DAY_IN_SECS - (get_time() as i64 - self.time as i64)
     }
 }
 
