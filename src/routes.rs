@@ -1,26 +1,48 @@
 use crate::error::InsulinLookupError;
-use crate::insulin::{parse_dose, save_dose, Dose};
+use crate::insulin::{parse_dose, save_dose, Dose, Insulin};
 use rocket::serde::json::Json;
-use rocket::serde::Deserialize;
+use rocket::serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
-
-#[get("/lastdose")]
-fn lastdose() -> Result<Json<Dose>, Json<InsulinLookupError>> {
-    let dose = match parse_dose() {
-        Ok(d) => d,
-        Err(e) => {
-            return Err(Json(e));
-        }
-    };
-    println!("{:?}", dose);
-    Ok(Json(dose))
-}
 
 #[derive(FromForm, Deserialize)]
 #[serde(crate = "rocket::serde")]
 struct DoseRequest {
     dose: u8,
     key: Option<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
+struct DoseResponse {
+    dose: Option<Dose>,
+    timestamp: Option<String>,
+    error: Option<InsulinLookupError>,
+    success: bool,
+    insulin_time: bool,
+}
+
+#[get("/lastdose")]
+fn lastdose() -> Json<DoseResponse> {
+    let dose = match parse_dose() {
+        Ok(d) => d,
+        Err(e) => {
+            return Json(DoseResponse {
+                dose: None,
+                timestamp: None,
+                error: Some(e),
+                success: false,
+                insulin_time: false,
+            });
+        }
+    };
+    println!("{:?}", dose);
+    Json(DoseResponse {
+        dose: Some(dose.clone()),
+        timestamp: Some(dose.timestamp()),
+        error: None,
+        success: true,
+        insulin_time: dose.insulin_time(),
+    })
 }
 
 #[post("/dose", format = "json", data = "<dosereq>")]

@@ -1,10 +1,11 @@
 use crate::error::InsulinLookupError;
 use chrono::{NaiveDateTime, TimeZone};
 use chrono_tz::US::Pacific;
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::{Error, Read};
 use std::path::Path;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub fn read_file() -> Result<String, Error> {
     // Read lines from file
@@ -19,11 +20,12 @@ pub fn read_file() -> Result<String, Error> {
     }
 }
 
-trait Insulin {
+pub trait Insulin {
     fn timestamp(&self) -> String;
+    fn insulin_time(&self) -> bool;
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(crate = "rocket::serde")]
 pub struct Dose {
     pub time: u64,
@@ -68,4 +70,18 @@ impl Insulin for Dose {
         let aware = Pacific.from_utc_datetime(&dt);
         aware.to_string()
     }
+
+    fn insulin_time(&self) -> bool {
+        if (get_time() - self.time) > 60 * 60 * 24 {
+            return true;
+        }
+        return false;
+    }
+}
+
+fn get_time() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards?")
+        .as_secs()
 }

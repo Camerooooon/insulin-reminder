@@ -1,8 +1,8 @@
 use core::fmt::{Display, Formatter};
 use core::num::ParseIntError;
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct InsulinLookupError {
     pub message: String,
