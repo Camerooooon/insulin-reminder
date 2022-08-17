@@ -49,7 +49,7 @@ pub fn parse_dose() -> Result<Dose, InsulinLookupError> {
         });
     }
     println!("{}", rawdata);
-    let mut parts = rawdata.split(" ");
+    let mut parts = rawdata.split(' ');
     let time = parts
         .next()
         .ok_or(InsulinLookupError {
@@ -78,7 +78,7 @@ impl Insulin for Dose {
         if (get_time() - self.time) > DAY_IN_SECS as u64 {
             return true;
         }
-        return false;
+        false
     }
 
     fn time_until_insulin(&self) -> i64 {
